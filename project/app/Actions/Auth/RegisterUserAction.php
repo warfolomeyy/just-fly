@@ -17,10 +17,7 @@ class RegisterUserAction
         ]);
         $token = $user->createToken('api_token')->plainTextToken;
 
-        return  [
-            $token,
-            $user
-        ];
+        return $user->createToken('api_token')->plainTextToken;
     }
 
 

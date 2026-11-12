@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\Auth\LoginUserAction;
+use App\Actions\Auth\RegisterUserAction;
+use App\Actions\User\UpdateProfileAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
-use App\Actions\Auth\RegisterUserAction;
-use App\Actions\Auth\LoginUserAction;
-use App\Actions\User\UpdateProfileAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,7 +17,8 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
     {
-        $token = $action->execute($request->validated());
+        $result = $action->execute($request->validated());
+        $token = is_array($result) ? ($result['token'] ?? $result[0]) : $result;
 
         return response()->json([
             'user_token' => $token,
@@ -26,7 +27,15 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request, LoginUserAction $action): JsonResponse
     {
-        $token = $action->execute($request->validated());
+        $result = $action->execute($request->validated());
+
+        if (!$result) {
+            return response()->json([
+                'password' => 'Login failed',
+            ], 401);
+        }
+
+        $token = is_array($result) ? ($result['token'] ?? $result[0]) : $result;
 
         return response()->json([
             'user_token' => $token,
@@ -40,7 +49,8 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function updateProfile(UpdateProfileRequest $request, UpdateProfileAction $action): JsonResponse {
+    public function updateProfile(UpdateProfileRequest $request, UpdateProfileAction $action): JsonResponse
+    {
         $action->execute($request->user(), $request->validated());
 
         return response()->json([

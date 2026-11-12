@@ -8,14 +8,14 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class LoginUserAction
 {
-    public function execute(array $data): string {
+    public function execute(array $data): string
+    {
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user || Hash::check($data['password'], $user->password)) {
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             throw new UnauthorizedHttpException('login');
         }
 
         return $user->createToken('api_token')->plainTextToken;
-
     }
 }

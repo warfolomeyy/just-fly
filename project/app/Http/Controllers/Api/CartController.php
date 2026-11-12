@@ -10,6 +10,7 @@ use App\Actions\Cart\AddToCartAction;
 use App\Actions\Cart\RemoveFromCartAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class CartController extends Controller
 {
@@ -31,9 +32,11 @@ class CartController extends Controller
         ], 201);
     }
 
-    public function destroy(Request $request, Cart $cart, RemoveFromCartAction $action): JsonResponse
+    public function destroy(Cart $cart, RemoveFromCartAction $action): JsonResponse
     {
-        $action->execute($request->user()->id, $cart);
+        Gate::authorize('delete', $cart);
+
+        $action->execute($cart);
 
         return response()->json([
             'message' => 'Item removed from cart',
